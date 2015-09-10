@@ -1,0 +1,25 @@
+/* -*- mode: maxima -*- */
+
+/* Q1 shape functions */
+chi[1](xi,eta) := (1/4)*(xi-1)*(eta-1)$
+chi[2](xi,eta) := (1/4)*(xi+1)*(1-eta)$
+chi[3](xi,eta) := (1/4)*(xi+1)*(eta+1)$
+chi[4](xi,eta) := (1/4)*(1-xi)*(eta+1)$
+
+/* Map from the reference element to a 2D (boundary) element
+corresponding to the top (or bottom) surface. */
+x(xi,eta) := 'sum(x[j]*'chi[j](xi, eta), j, 1, 4)$
+y(xi,eta) := 'sum(y[j]*'chi[j](xi, eta), j, 1, 4)$
+z(xi,eta) := 'sum(z[j]*'chi[j](xi, eta), j, 1, 4)$
+
+J : matrix(
+  ['diff(x(xi,eta), xi), 'diff(y(xi,eta), xi)],
+  ['diff(x(xi,eta), eta),'diff(y(xi,eta), eta)])$
+
+/* Compute the Jacobian of the mapping from the reference element (times 4)*/
+four_J : ratsimp(ev(4*J, nouns))$
+
+/* If all elements are rectangles aligned with the coordinate system, then... */
+aligned_rectangle : [y[2]=y[1], y[4]=y[3], x[4]=x[1], x[3]=x[2]]$
+
+J_aligned : factor(subst(aligned_rectangle, four_J) / 4);
