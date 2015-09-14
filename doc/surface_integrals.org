@@ -1,0 +1,549 @@
+#+title: Evaluating line and surface integrals to implement boundary conditions
+#+AUTHOR: Constantine Khroulev
+#+LATEX_HEADER: \usepackage[margin=1in]{geometry}
+#+LATEX_HEADER: \parindent=0in \parskip=0.5\baselineskip
+#+OPTIONS: author:t date:t email:nil toc:t
+
+#+BEGIN_LaTeX
+\newcommand{\dx}{\Delta x}
+\newcommand{\dy}{\Delta y}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\diff}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\rs}{\R_{s}}
+\newcommand{\rt}{\R_{t}}
+\newcommand{\R}{\vec r}
+\newcommand{\N}{\vec n}
+\newcommand{\rRef}{\R_{*}}
+#+END_LaTeX
+
+#+BEGIN_SRC emacs-lisp :results value :exports results
+  (org-babel-tangle)
+  nil
+#+END_SRC
+
+* Introduction
+
+To implement Neumann boundary conditions in a FEM solver we need to be
+able to evaluate integrals over element boundaries. In the
+two-dimensional case this requires computing /line integrals/; in the
+three-dimensional case --- /surface integrals/. In these notes I
+describe how to use element maps to approximate these integrals using
+quadratures.
+
+Karniadakis and Sherwin mention this in section 4.1.4 (page 160) of
+\cite{KarniadakisSherwin}, but use an unhelpful name /surface
+Jacobian/ and don't go into details.
+
+* Preliminaries
+
+** Line integrals
+
+For some scalar function $F : U \subset \Real^{n} \to \Real$
+the integral along a piecewise smooth curve $C \subset U$ is defined as
+\begin{equation}
+\label{eq:4}
+\int_{C} F\, ds = \int_{a}^{b} F(\R(t))\, \left| \frac{d}{dt}\R(t) \right|\, dt,
+\end{equation}
+where $\R: [a, b] \to C$ is a bijective parameterization of the curve
+$C$ \cite{Nikolsky1977}.
+
+** Surface integrals
+
+Let $\Omega \subset \Real^{2}$ be a measurable subset of the
+plane and define $\R(s,t) = (x(s,t), y(s,t), z(s,t))$, where $x(s,
+t)$, $y(s, t)$, and $z(s, t)$ are continuously differentiable
+functions defined on $\Omega$. Then $S = \R(\Omega) \subset
+\Real^{3}$ is a smooth surface parameterized by $\R$.
+
+Vectors $\rs$ and $\rt$ are tangential vectors to the surface $S$
+given by the parameterization $\R(s,t)$.
+
+If $\rs$ and $\rt$ are not parallel, then $\N = \rs \times \rt$ is
+a normal vector, $| \N | > 0$, and we can define
+the integral
+\begin{equation}
+\label{eq:3}
+\int_{S} F\, dS = \int_{\Omega} F\, |\N|\, ds dt.
+\end{equation}
+
+Here
+\begin{equation}
+\label{eq:5}
+\rs = \left(\diff{x(s,t)}{s}, \diff{y(s,t)}{s}, \diff{z(s,t)}{s}\right) \quad \text{and} \quad
+\rt = \left(\diff{x(s,t)}{t}, \diff{y(s,t)}{t}, \diff{z(s,t)}{t}\right).
+\end{equation}
+See \cite{Nikolsky1977} or any other Calculus textbook for details.
+
+
+* Boundaries of quadrilateral elements
+
+A 2D FEM construction includes the map from the reference element
+$E_{*} = [-1, 1] \times [-1,1]$ to a physical element:
+
+\begin{equation}
+\label{eq:20}
+\rRef(\xi,\eta) = \left( x(\xi,\eta), y(\xi,\eta) \right).
+\end{equation}
+
+A side of the reference element is mapped to the corresponding side of
+the physical element. We number faces as follows.
+\begin{equation}
+\label{eq:21}
+\begin{aligned}
+C_{*,1} &=  E_{*} \cap \left \{ (\xi, \eta)\, |\, \xi = -1 \right \},\\
+C_{*,2} &=  E_{*} \cap \left \{ (\xi, \eta)\, |\, \xi = 1  \right \},\\
+C_{*,3} &=  E_{*} \cap \left \{ (\xi, \eta)\, |\, \eta = -1 \right \},\\
+C_{*,4} &=  E_{*} \cap \left \{ (\xi, \eta)\, |\, \eta = 1  \right \}.
+\end{aligned}
+\end{equation}
+Now sides of a physical element are $C_{E,i} = \rRef(C_{*,i})$. The
+face $C_{E,1}$ is parameterized by
+\begin{equation}
+\label{eq:22}
+\r_{E,1}(t) = \rRef(-1, t),
+\end{equation}
+and so on.
+
+** Example: evaluating integrals over sides of $Q_{1}$ quad elements
+
+In this example I use the first ("left") side, but computations for
+all sides are similar.
+
+Let $(\xi_{i}, \eta_{i}), i = 1,\dots,4$ be coordinates of the nodes
+of the reference element $E_{*}$ and $(x_{i}, y_{i})$ be coordinates
+of the nodes of a physical element $E$.
+
+Let $F(x,y)$ be a function defined on the FEM mesh and on $C_{E,1}$ in
+particular. Assume that we know its nodal values
+\begin{equation}
+\label{eq:23}
+F_{i} = F(x_{i}, y_{i}).
+\end{equation}
+
+Our goal is to approximate the integral
+\begin{equation}
+\label{eq:24}
+I = \int_{C_{E,1}} F(x,y)\, ds
+\end{equation}
+
+In this case the map $\rRef$ is defined by \eqref{eq:20} and
+\begin{equation}
+\label{eq:25}
+\begin{aligned}
+x(\xi,\eta) &= \sum_{i=1}^{4} x_{i}\, \chi_{i}(\xi, \eta),\\
+y(\xi,\eta) &= \sum_{i=1}^{4} y_{i}\, \chi_{i}(\xi, \eta),\\
+\end{aligned}
+\end{equation}
+where
+\begin{equation}
+\label{eq:26}
+\chi_{i}(\xi,\eta) = \frac14 (1 + \xi\xi_{i})(1 + \eta\eta_{i})
+\end{equation}
+are $Q_{1}$ reference element basis function.
+
+Now we can rewrite $I$
+\begin{equation}
+\label{eq:27}
+I = \int_{-1}^{1} F(x(-1, t), y(-1, t))\, \left|\frac{d}{dt}\R(t) \right|\, dt.
+\end{equation}
+
+Here
+\begin{align}
+\label{eq:28}
+\R_{1}(t) &= \left( x(-1,t),\, y(-1,t) \right),\\
+\frac{d}{dt} \R_{1}(t) &= \left( \sum_{i=1}^{4} x_{i}\, \frac{d}{dt}\chi_{i}(-1, t),\,
+                                 \sum_{i=1}^{4} y_{i}\, \frac{d}{dt}\chi_{i}(-1, t)  \right).
+\end{align}
+
+The integral in \eqref{eq:27} is a /regular/ definite integral over
+the interval $[-1, 1]$ and can be approximated using a quadrature.
+
+\begin{equation}
+\label{eq:29}
+I \approx \sum_{q=1}^{N_{q}} w_{q}\, F(x(-1, t_{q}), y(-1, t_{q}))\, \left|\frac{d}{dt}\R(t_{q}) \right|.
+\end{equation}
+
+Now we just need to approximate $F(x(-1, t_{q}), y(-1, t_{q}))$ by
+a bilinear function built on \eqref{eq:26}:
+\begin{equation}
+\label{eq:30}
+F(x(-1, t), y(-1, t)) \approx \sum_{j=1}^{4} F_{j}\, \chi_{j}(-1, t)
+\end{equation}
+so that
+\begin{equation}
+\label{eq:31}
+I \approx \sum_{q=1}^{N_{q}} w_{q}\,
+\left( \sum_{j=1}^{4} F_{j}\, \chi_{j}(-1, t_{q}) \right) \,
+\left| \frac{d}{dt}\R(t_{q}) \right|.
+\end{equation}
+
+In the equal spacing case ($x_{4} = x_{1}$, $x_{2} = x_{3} = x_{1} +
+\dx$, $y_{2} = y_{1}$, $y_{3} = y_{4} = y_{1} + \dy$ everything is much simpler:
+#+RESULTS[611bcb77c42631074ef7d22cc8b78450d9116fca]: equal_spacing_2d
+#+BEGIN_LaTeX
+\begin{align*}
+\left| \frac{d}{dt}\R_{1}\right|  & = \frac{\dy}{2}, \\
+\left| \frac{d}{dt}\R_{2}\right|  & = \frac{\dy}{2}, \\
+\left| \frac{d}{dt}\R_{3}\right|  & = \frac{\dx}{2}, \\
+\left| \frac{d}{dt}\R_{4}\right|  & = \frac{\dx}{2}. \\
+\end{align*}
+#+END_LaTeX
+
+*** Maxima code used in the 2D equal spacing case
+
+#+name: equal_spacing_2d
+#+BEGIN_SRC maxima :results output latex :cache yes :exports both
+  assume(dx > 0, dy > 0)$
+  texput(dx, "\\dx")$
+  texput(dy, "\\dy")$
+  texput(nounify(T), "\\frac{d}{dt}\\R")$
+
+  /* coordinates of the nodes of the reference element */
+  xis   : [-1,  1,  1, -1]$
+  etas  : [-1, -1,  1,  1]$
+
+  /* Reference element basis functions */
+  chi[i](xi, eta) := (1/4) * (1 + xi*xis[i]) * (1 + eta*etas[i])$
+
+  /* The isoparametric map from the reference to a physical element. */
+  x(xi, eta) := sum(x[j] * chi[j](xi, eta), j, 1, 4)$
+  y(xi, eta) := sum(y[j] * chi[j](xi, eta), j, 1, 4)$
+
+  /* sides of the reference hexahedron */
+  sides : [
+    [-1, t], [1, t],
+    [t, -1], [t, 1]
+  ]$
+
+  /* parameterizations of sides */
+  R[j] := [funmake(x, sides[j]), funmake(y, sides[j])]$
+
+  equal_horizontal_spacing : [
+    x[3] = x[2], x[4] = x[1], x[2] = x[1] + dx,
+    y[2] = y[1], y[4] = y[3], y[3] = y[1] + dy
+  ]$
+
+  /* tangential vector */
+  T[j] := diff(R[j], t)$
+  vnorm[j] := sqrt(T[j] . T[j])$
+
+  eq_simplify(e) := expand(subst(equal_horizontal_spacing, ev(e, nouns)))$
+
+  tex_align(makelist(abs('T[j]) = eq_simplify(vnorm[j]), j, 1, 4))$
+#+END_SRC
+
+* Boundaries of hexahedral elements
+
+A 3D FEM construction includes the map from the reference element
+$E_{*} = [-1, 1] \times [-1,1] \times [-1,1]$ to a physical element:
+
+\begin{equation}
+\label{eq:6}
+\rRef(\xi,\eta,\zeta) = \left( x(\xi,\eta,\zeta), y(\xi,\eta,\zeta), z((\xi,\eta,\zeta) \right)
+\end{equation}
+
+Note that $\rRef$ maps a face of the reference element to the
+corresponding face of a physical element. We number the faces of the
+reference element as follows.
+
+\begin{equation}
+\label{eq:7}
+\begin{aligned}
+S_{*,1} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \xi = -1 \right \},\\
+S_{*,2} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \xi = 1  \right \},\\
+S_{*,3} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \eta = -1 \right \},\\
+S_{*,4} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \eta = 1  \right \},\\
+S_{*,5} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \zeta = -1 \right \},\\
+S_{*,6} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \zeta = 1  \right \}.
+\end{aligned}
+\end{equation}
+
+Then faces of a physical element are $S_{E,i} = \rRef(S_{*,i})$.
+The face $S_{E,1}$ is parameterized by
+\begin{equation*}
+\label{eq:8}
+\R_{E,1}(s, t) = \rRef(-1,s,t),
+\end{equation*}
+and so on.
+
+** Example: evaluating an integral over a face of a $Q_{1}$ element.
+
+#+BEGIN_LaTeX
+\newcommand{\face}{S_{E,5}}
+#+END_LaTeX
+
+In this example I use the fifth, or "bottom" face, but all
+computations are very similar in the five other cases.
+
+Let $(\xi_{i}, \eta_{i}, \zeta_{i})$, $i = 1,\dots,8$ be coordinates
+of the nodes of the reference element $E_{*}$ and $(x_{i}, y_{i},
+z_{i})$ the coordinates of the nodes of a physical element $E$.
+
+Let $F(x,y,z)$ be a function defined on the FEM mesh and on $\face$
+in particular. Assume that we know its nodal values
+\begin{equation*}
+F_{i} = F(x_{i}, y_{i}, z_{i}).
+\end{equation*}
+
+Our goal is to approximate the integral
+\begin{equation}
+\label{eq:13}
+I = \int_{\face} F(x,y,z)\, dS.
+\end{equation}
+
+In this case the map $\rRef$ is defined by \eqref{eq:6} and
+\begin{equation}
+\label{eq:9}
+\begin{aligned}
+x(\xi,\eta,\zeta) &= \sum_{i=1}^{8} x_{i}\, \chi_{i}(\xi, \eta, \zeta),\\
+y(\xi,\eta,\zeta) &= \sum_{i=1}^{8} y_{i}\, \chi_{i}(\xi, \eta, \zeta),\\
+z(\xi,\eta,\zeta) &= \sum_{i=1}^{8} z_{i}\, \chi_{i}(\xi, \eta, \zeta),
+\end{aligned}
+\end{equation}
+where
+\begin{equation}
+\label{eq:10}
+\chi_{i}(\xi,\eta,\zeta) = \frac18 (1 + \xi\xi_{i})(1 + \eta\eta_{i})(1 + \zeta\zeta_{i})
+\end{equation}
+are $Q_{1}$ reference element basis function.
+
+We can now rewrite $I$ using \eqref{eq:6}, \eqref{eq:9}, and the definition of the surface integral:
+\begin{equation}
+\label{eq:11}
+I = \int_{E_{*}} F(x(s,t,-1), y(s,t,-1), z(s,t,-1))\, | \N(s,t) |\,dsdt,
+\end{equation}
+where $\N(s,t) = \rs(s,t) \times \rt(s,t)$ and
+\begin{equation}
+\label{eq:5}
+\begin{aligned}
+\rs(s,t) &= \left(\diff{x(s,t,-1)}{s}, \diff{y(s,t,-1)}{s}, \diff{z(s,t,-1)}{s}\right),\\
+\rt(s,t) &= \left(\diff{x(s,t,-1)}{t}, \diff{y(s,t,-1)}{t}, \diff{z(s,t,-1)}{t}\right),
+\end{aligned}
+\end{equation}
+since the face $\face$ is parameterized by $\R_{E,5}(s, t) = \rRef(s, t, -1)$.
+
+The integral $I$ written in the form \eqref{eq:11} can be approximated
+using a quadrature on the reference element, i.e.
+\begin{equation}
+\label{eq:12}
+I \approx \sum_{q=1}^{N_{q}} w_{q}\cdot F(x(s_{q},t_{q},-1), y(s_{q},t_{q},-1), z(s_{q},t_{q},-1)) | \N(s_{q},t_{q}) |,
+\end{equation}
+where $w_{q}$ are quadrature weights and $s_{q}, t_{q}$ are
+coordinates of quadrature points.
+
+To compute this quadrature we need
+$F(x(s_{q},t_{q},-1), y(s_{q},t_{q},-1), z(s_{q},t_{q},-1))$, but we
+assume that only nodal values of $F$ are available.
+
+We use \eqref{eq:10} as a basis to write a trilinear approximation of $F$ on $\face$:
+\begin{equation}
+\label{eq:14}
+F(s,t) \approx \sum_{k=1}^{8} F_{k}\,\chi_{k}(s, t, -1),
+\end{equation}
+then
+\begin{equation}
+\label{eq:15}
+I \approx \sum_{q=1}^{N_{q}} w_{q}\left( \sum_{k=1}^{8} F_{k}\,\chi_{k}(s_{q}, t_{q}, -1) \right) | \N(s_{q},t_{q}) |,
+\end{equation}
+
+Finally, to evaluate $|\N(s_{q}, t_{q})| = | \rs(s_{q}, t_{q}) \times
+\rt(s_{q}, t_{q}) |$ we use \eqref{eq:5} and \eqref{eq:9}.
+The vector $\rs(s_{q}, t_{q})$ is defined by
+\begin{equation}
+\label{eq:16}
+\rs(s_{q},t_{q}) = \left(
+  \sum_{j=1}^{8} x_{j} \left.\diff{\chi_{j}(s, t, -1)}{s}\right|_{(s_{q}, t_{q})},\,
+  \sum_{j=1}^{8} y_{j} \left.\diff{\chi_{j}(s, t, -1)}{s}\right|_{(s_{q}, t_{q})},\,
+  \sum_{j=1}^{8} z_{j} \left.\diff{\chi_{j}(s, t, -1)}{s}\right|_{(s_{q}, t_{q})} \right),
+\end{equation}
+similarly for $\rt(s_{q}, t_{q})$.
+
+Overall, here are the steps needed to approximate \eqref{eq:13}.
+
+1. Pre-compute $\chi_{j}(s_{q}, t_{q}, -1)$ for $\face$ and similarly
+   for the remaining five faces.
+2. Pre-compute $\diff{\chi_{i}(s, t, -1)}{s}$ and
+   $\diff{\chi_{i}(s, t, -1)}{t}$ and $(s_{q}, t_{q})$ for $\face$ and similarly for
+   other faces.
+
+Then for each quadrature point we need to
+
+1. use pre-computed values to approximate $\rs(s_{q},t_{q})$ and
+   $\rt(s_{q},t_{q})$ (see \eqref{eq:16}),
+2. compute $|\N(s_{q}, t_{q})| = | \rs(s_{q}, t_{q}) \times \rt(s_{q}, t_{q}) |$,
+3. approximate $F(s_{q}, t_{q})$ using \eqref{eq:14},
+4. multiply to evaluate a term of \eqref{eq:15}.
+
+*** Equal horizontal spacing
+
+The procedure described above can be simplified if we know that the
+FEM mesh uses regular spacing in the $x$ and $y$ directions, i.e.
+$x$ and $y$ coordinates of the nodes of a physical element are
+\begin{equation}
+\label{eq:17}
+\begin{array}{rcllllllll}
+x_{i} &=& \{ x_{1}, &x_{1} + \dx, &x_{1} + \dx, &x_{1}, &x_{1}, &x_{1} + \dx, &x_{1} + \dx, &x_{1} \},\\
+y_{i} &=& \{ y_{1}, &y_{1}, &y_{1} + \dy, &y_{1} + \dy, &y_{1}, &y_{1}, &y_{1} + \dy, &y_{1} + \dy \};\\
+\end{array}
+\end{equation}
+$z_{i}$ are may all be different.
+
+In this case \eqref{eq:16} simplifies to
+\begin{equation}
+\label{eq:18}
+\rs(s,t) = \left(
+  \frac{\dx}{2},\,
+  0,\,
+  \sum_{i=1}^{8} z_{i} \diff{\chi_{i}(s, t, -1)}{s} \right),
+\end{equation}
+and $\rt(s,t)$ is given by
+\begin{equation}
+\label{eq:18}
+\rt(s,t) = \left(
+  0,\,
+  \frac{\dy}{2},\,
+  \sum_{i=1}^{8} z_{i} \diff{\chi_{i}(s, t, -1)}{t} \right).
+\end{equation}
+
+With these simplifications $\N(s,t)$ becomes
+
+\begin{equation}
+\label{eq:19}
+\N(s,t) = \left(
+-\frac{\dy}{2}\diff{z(s,t,-1)}{s},
+-\frac{\dx}{2}\diff{z(s,t,-1)}{t},
+\frac{1}{4} \dx \dy
+\right)
+\end{equation}
+
+Note that if all $z_{i}$ are equal, $|\N| = \frac{1}{4} \dx \dy$ is
+equal to the determinant of the Jacobian of the map from the reference
+element to a physical element in the 2D $Q_{1}$ FEM setup with equal
+spacing in $x$ and $y$ directions --- as expected.
+
+The only thing that changes depending on the face we're integrating
+over is the expression for $|\N|$. Below are formulas for all six
+faces (assuming equal horizontal spacing and using the numbering
+defined by \eqref{eq:7}).
+
+#+RESULTS[ca0c9d15e072bf088dedb221f3b09d3a6f9b3721]: equal_spacing_3d
+#+BEGIN_LaTeX
+\begin{align*}
+ \N_{1} & = \left[ \frac{\frac{d}{d\,t}\,z\left(-1 , s , t\right)\,\dy}{2} , 0 , 0 \right] , \\
+ \N_{2} & = \left[ \frac{\frac{d}{d\,t}\,z\left(1 , s , t\right)\,\dy}{2} , 0 , 0 \right] , \\
+ \N_{3} & = \left[ 0 , -\frac{\dx\,\left(\frac{d}{d\,t}\,z\left(s , -1 , t\right)\right)}{2} , 0 \right] , \\
+ \N_{4} & = \left[ 0 , -\frac{\dx\,\left(\frac{d}{d\,t}\,z\left(s , 1 , t\right)\right)}{2} , 0 \right] , \\
+ \N_{5} & = \left[ -\frac{\dy\,\left(\frac{d}{d\,s}\,z\left(s , t , -1\right)\right)}{2} , -\frac{\dx\,\left(\frac{d}{d\,t}\,z\left(s , t , -1\right)\right)}{2} , \frac{\dx\,\dy}{4} \right] , \\
+ \N_{6} & = \left[ -\frac{\dy\,\left(\frac{d}{d\,s}\,z\left(s , t , 1\right)\right)}{2} , -\frac{\dx\,\left(\frac{d}{d\,t}\,z\left(s , t , 1\right)\right)}{2} , \frac{\dx\,\dy}{4} \right] . \\
+\end{align*}
+\begin{align*}
+ \left| \N_{1}\right|  & = \frac{\left| \frac{d}{d\,t}\,z\left(-1 , s , t\right)\right| \,\dy}{2}, \\
+ \left| \N_{2}\right|  & = \frac{\left| \frac{d}{d\,t}\,z\left(1 , s , t\right)\right| \,\dy}{2}, \\
+ \left| \N_{3}\right|  & = \frac{\dx\,\left| \frac{d}{d\,t}\,z\left(s , -1 , t\right)\right| }{2}, \\
+ \left| \N_{4}\right|  & = \frac{\dx\,\left| \frac{d}{d\,t}\,z\left(s , 1 , t\right)\right| }{2}, \\
+ \left| \N_{5}\right|  & = \sqrt{\frac{\dx^2\,\left(\frac{d}{d\,t}\,z\left(s , t , -1\right)\right)^2}{4}+\frac{\dy^2\,\left(\frac{d}{d\,s}\,z\left(s , t , -1\right)\right)^2}{4}+\frac{\dx^2\,\dy^2}{16}}, \\
+ \left| \N_{6}\right|  & = \sqrt{\frac{\dx^2\,\left(\frac{d}{d\,t}\,z\left(s , t , 1\right)\right)^2}{4}+\frac{\dy^2\,\left(\frac{d}{d\,s}\,z\left(s , t , 1\right)\right)^2}{4}+\frac{\dx^2\,\dy^2}{16}}. \\
+\end{align*}
+#+END_LaTeX
+
+*** Maxima code used in the 3D equal spacing case
+
+#+name: equal_spacing_3d
+#+BEGIN_SRC maxima :exports both :results output latex :cache yes
+  assume(dx > 0, dy > 0)$
+  texput(dx, "\\dx")$
+  texput(dy, "\\dy")$
+  texput(nounify(N), "\\N")$
+
+  load(vect)$ /* now ~ is the vector cross product */
+  vecnorm(V) := sqrt(V . V)$
+
+  /* coordinates of the nodes of the reference element */
+  xis   : [-1,  1,  1, -1, -1,  1, 1, -1]$
+  etas  : [-1, -1,  1,  1, -1, -1, 1,  1]$
+  zetas : [-1, -1, -1, -1,  1,  1, 1,  1]$
+
+  /* Reference element basis functions */
+  chi[i](xi, eta, zeta) := (1/8) * (1 + xi*xis[i]) * (1 + eta*etas[i]) * (1 + zeta*zetas[i])$
+
+  /* The isoparametric map from the reference to a physical element. */
+  x(xi, eta, zeta) := sum(x[j] * chi[j](xi, eta, zeta), j, 1, 8)$
+  y(xi, eta, zeta) := sum(y[j] * chi[j](xi, eta, zeta), j, 1, 8)$
+  /* z is similar, but I don't need to define it */
+  depends(z, [xi, eta, zeta])$
+
+  /* faces of the reference hexahedron */
+  faces : [
+    [-1, s,  t], [1, s, t],
+    [s, -1,  t], [s, 1, t],
+    [s,  t, -1], [s, t, 1]
+  ]$
+
+  /* parameterizations of faces */
+  R[j] := [funmake(x, faces[j]), funmake(y, faces[j]), funmake(z, faces[j])]$
+
+  equal_horizontal_spacing : [
+    x[3] = x[2], x[4] = x[1], x[5] = x[1], x[6] = x[2], x[7] = x[2], x[8] = x[1],
+    x[2] = x[1] + dx,
+    y[2] = y[1], y[4] = y[3], y[5] = y[1], y[6] = y[1], y[7] = y[3], y[8] = y[3],
+    y[3] = y[1] + dy
+  ]$
+
+  /* tangential vectors */
+  T[j] := [diff(R[j], s), diff(R[j], t)]$
+  /* normal vectors */
+  N[j] := express(T[j][1] ~ T[j][2])$
+  /* magnitudes of normal vectors */
+  vnorm[j] := vecnorm(N[j])$
+
+  eq_simplify(e) := expand(subst(equal_horizontal_spacing, ev(e, nouns)))$
+
+  tex_align(makelist('N[j] = eq_simplify(N[j]), j, 1, 6))$
+  tex_align(makelist(abs('N[j]) = eq_simplify(vnorm[j]), j, 1, 6))$
+#+END_SRC
+
+* Maxima code for the cross product                                :noexport:
+
+#+name: cross_product
+#+BEGIN_SRC maxima :exports none :results output latex :cache yes
+  load(vect)$
+  u : [u[1], u[2], u[3]];
+  v : [v[1], v[2], v[3]];
+  tex('u ~ 'v = transpose(express(u ~ v)));
+#+END_SRC
+
+#+RESULTS[0ed4168b051a27d142bbf4fc5a625532f0aa9cd8]: cross_product
+#+BEGIN_LaTeX
+\begin{equation*}
+~\left(u , v\right)=\begin{pmatrix}
+u_{2}\,v_{3}-v
+ _{2}\,u_{3}\\
+v_{1}\,u_{3}-u_{1}\,v_{3}\\
+u_{1}\,v_{2}-v_{1}\,u_{2}
+ \\
+\end{pmatrix}
+\end{equation*}
+#+END_LaTeX
+
+* BibTeX entries and references
+
+# References
+\bibliography{references}
+\bibliographystyle{plain}
+
+#+BEGIN_SRC bibtex :tangle references.bib
+  @book{KarniadakisSherwin,
+    title={Spectral/hp {E}lement {M}ethods for {C}omputational {F}luid {D}ynamics},
+    author={G. Karniadakis and S. Sherwin},
+    year={2013},
+    edition={2nd},
+    publisher={Oxford University Press},
+  }
+
+  @book{Nikolsky1977,
+    title={A course of Mathematical Analysis, volume 2},
+    year={1977},
+    author={Nikolsky, S.~M.},
+    publisher={MIR Publishers, Moscow}
+  }
+#+END_SRC
