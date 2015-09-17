@@ -1,4 +1,4 @@
-all: surface_integrals.pdf
+all: boundary_integrals.pdf
 
 %.pdf: %.tex
 	pdflatex $^
