@@ -100,7 +100,7 @@ Now sides of a physical element are $C_{E,i} = \rRef(C_{*,i})$. The
 face $C_{E,1}$ is parameterized by
 \begin{equation}
 \label{eq:22}
-\r_{E,1}(t) = \rRef(-1, t),
+\R_{E,1}(t) = \rRef(-1, t),
 \end{equation}
 and so on.
 
