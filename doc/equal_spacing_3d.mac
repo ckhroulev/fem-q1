@@ -1,0 +1,54 @@
+/* This script produces formulas for approximating surface integrals
+over faces of 3D Q1 elements in the case using a regular grid in the x
+and y directions. See notes in the latex directory. */
+
+assume(dx > 0, dy > 0)$
+texput(dx, "\\dx")$
+texput(dy, "\\dy")$
+texput(nounify(N), "\\N")$
+
+load(vect)$ /* now ~ is the vector cross product */
+vecnorm(V) := sqrt(V . V)$
+
+/* coordinates of the nodes of the reference element */
+xis   : [-1,  1,  1, -1, -1,  1, 1, -1]$
+etas  : [-1, -1,  1,  1, -1, -1, 1,  1]$
+zetas : [-1, -1, -1, -1,  1,  1, 1,  1]$
+
+/* Reference element basis functions */
+chi[i](xi, eta, zeta) := (1/8) * (1 + xi*xis[i]) * (1 + eta*etas[i]) * (1 + zeta*zetas[i])$
+
+/* The isoparametric map from the reference to a physical element. */
+x(xi, eta, zeta) := sum(x[j] * chi[j](xi, eta, zeta), j, 1, 8)$
+y(xi, eta, zeta) := sum(y[j] * chi[j](xi, eta, zeta), j, 1, 8)$
+/* z is similar, but I don't need to define it */
+depends(z, [xi, eta, zeta])$
+
+/* faces of the reference hexahedron */
+faces : [
+  [-1, s,  t], [1, s, t],
+  [s, -1,  t], [s, 1, t],
+  [s,  t, -1], [s, t, 1]
+]$
+
+/* parameterizations of faces */
+R[j] := [funmake(x, faces[j]), funmake(y, faces[j]), funmake(z, faces[j])]$
+
+equal_horizontal_spacing : [
+  x[3] = x[2], x[4] = x[1], x[5] = x[1], x[6] = x[2], x[7] = x[2], x[8] = x[1],
+  x[2] = x[1] + dx,
+  y[2] = y[1], y[4] = y[3], y[5] = y[1], y[6] = y[1], y[7] = y[3], y[8] = y[3],
+  y[3] = y[1] + dy
+]$
+
+/* tangential vectors */
+T[j] := [diff(R[j], s), diff(R[j], t)]$
+/* normal vectors */
+N[j] := express(T[j][1] ~ T[j][2])$
+/* magnitudes of normal vectors */
+vnorm[j] := vecnorm(N[j])$
+
+eq_simplify(e) := expand(subst(equal_horizontal_spacing, ev(e, nouns)))$
+
+tex_align(makelist('N[j] = eq_simplify(N[j]), j, 1, 6))$
+tex_align(makelist(abs('N[j]) = eq_simplify(vnorm[j]), j, 1, 6))$
