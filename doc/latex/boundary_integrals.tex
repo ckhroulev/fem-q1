@@ -31,11 +31,11 @@
 \newcommand{\dy}{\Delta y}
 \newcommand{\Real}{\mathbb{R}}
 \newcommand{\diff}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\Diff}[2]{\frac{d #1}{d #2}}
 \newcommand{\rs}{\R_{s}}
 \newcommand{\rt}{\R_{t}}
-\newcommand{\R}{\vec r}
-\newcommand{\N}{\vec n}
-\newcommand{\rRef}{\R_{*}}
+\newcommand{\R}{\mathbf{r}}
+\newcommand{\N}{\mathbf{n}}
 
 \section{Introduction}
 \label{sec-1}
@@ -50,6 +50,20 @@ integrals using quadratures.
 Karniadakis and Sherwin mention this in section 4.1.4 (page 160) of
 \cite{KarniadakisSherwin}, but use an unhelpful name \emph{surface
   Jacobian} and don't go into details.
+
+\subsection{Notation}
+\label{sec:notation}
+
+In these notes the subscript $\cdot_{*}$ relate to the reference
+element, $\cdot_{k}$ to the $k$-th physical element. Superscripts
+$\cdot^{j}$ relate to the $j$-th \emph{boundary} (side or face) of an element.
+
+So, $E_{*}$ is the reference element itself, $E_{*}^{1}$ is its first
+side, $x_{k}$ is the function mapping from the coordinates in the
+system used by the reference element to the $x$-coordinate in the
+$k$-th element, while $x_{k}^{j}$ maps the $j$-th side of the reference
+element to the corresponding side of the physical element. A subscript
+$\cdot_{k,j}$ refers to the $j$-th \emph{node} of the element $k$.
 
 \section{Preliminaries}
 \label{sec-2}
@@ -97,115 +111,148 @@ See \cite{Nikolsky1977} or any other Calculus textbook for details.
 
 \section{Boundaries of quadrilateral elements}
 \label{sec-3}
+\newcommand{\F}[2]{#1_{#2}^{1}}
+\newcommand{\Fk}[1]{\F{#1}{k}}
+\newcommand{\Fr}[1]{\F{#1}{*}}
+\newcommand{\T}{\Fr{\R}(t)}
+\newcommand{\Tq}{\Fr{\R}(t_{q})}
 
-A 2D FEM construction includes the map from the reference element
-$E_{*} = [-1, 1] \times [-1,1]$ to a physical element:
-
+Consider the reference element $E_{*} = [-1, 1] \times [-1,1]$ with nodal coordinates
+$(\xi_{*,i}, \eta_{*,i}), i=1,\dots,4$.
+We number faces of the reference element as follows.
 \begin{equation}
 \label{eq:4}
-\rRef(\xi,\eta) = \left( x(\xi,\eta), y(\xi,\eta) \right).
+\begin{aligned}
+E_{*}^{1} &=  E_{*} \cap \left \{ (\xi, \eta)\, |\, \xi = -1 \right \},\\
+E_{*}^{2} &=  E_{*} \cap \left \{ (\xi, \eta)\, |\, \xi = 1  \right \},\\
+E_{*}^{3} &=  E_{*} \cap \left \{ (\xi, \eta)\, |\, \eta = -1 \right \},\\
+E_{*}^{4} &=  E_{*} \cap \left \{ (\xi, \eta)\, |\, \eta = 1  \right \}.
+\end{aligned}
+\end{equation}
+
+The first side $\Fr{E}$ is parameterized by
+\begin{equation}
+  \label{eq:5}
+  \begin{aligned}
+      \Fr{\R}(t) &= \left(\Fr{\xi}(t), \Fr{\eta}(t) \right),\\
+      \Fr{\xi}(t) &= -1,\\
+      \Fr{\eta}(t) &= t.
+  \end{aligned}
+\end{equation}
+(Definitions of $\Fr{\R}$ for $j = 2, 3, 4$ are very similar and
+are omitted.)
+
+Consider a physical element $E_{k}$ with nodal coordinates $(x_{k,i}, y_{k,i}), i = 1,\dots,4$.
+A 2D FEM construction includes the map from the reference element
+$E_{*} = [-1, 1] \times [-1,1]$ to $E_{k}$:
+\begin{equation}
+\label{eq:6}
+\R_{k}(\xi,\eta) = \left( x_{k}(\xi,\eta), y_{k}(\xi,\eta) \right).
 \end{equation}
 
 A side of the reference element is mapped to the corresponding side of
-the physical element. We number faces as follows.
+the physical element. So, we can use the parameterization of
+$\Fr{E}$ (\ref{eq:5}) and the map $\R_{k}$ (\ref{eq:6}) to create a parameterization of
+$\Fk{E}$:
 \begin{equation}
-\label{eq:5}
-\begin{aligned}
-C_{*,1} &=  E_{*} \cap \left \{ (\xi, \eta)\, |\, \xi = -1 \right \},\\
-C_{*,2} &=  E_{*} \cap \left \{ (\xi, \eta)\, |\, \xi = 1  \right \},\\
-C_{*,3} &=  E_{*} \cap \left \{ (\xi, \eta)\, |\, \eta = -1 \right \},\\
-C_{*,4} &=  E_{*} \cap \left \{ (\xi, \eta)\, |\, \eta = 1  \right \}.
-\end{aligned}
+  \label{eq:7}
+  \Fk{\R}(t) = \R_{k}(\Fr{\xi}(t), \Fr{\eta}(t)),\\
 \end{equation}
-Now sides of a physical element are $C_{E,i} = \rRef(C_{*,i})$. The
-face $C_{E,1}$ is parameterized by
+Note that (\ref{eq:7}) use a composition of functions, and we have to
+use the \emph{full derivative} to compute $\frac{d}{dt}\Fk{\R}$:
 \begin{equation}
-\label{eq:6}
-\R_{E,1}(t) = \rRef(-1, t),
+  \label{eq:8}
+  \Diff{}{t}\Fk{\R} = \diff{\Fk{\R}}{\Fr{\xi}} \Diff{\Fr{\xi}}{t} + \diff{\Fk{\R}}{\Fr{\eta}} \Diff{\Fr{\eta}}{t},
 \end{equation}
-and so on.
-
+but it reduces to a partial derivative with respect to the variable
+replaced by $t$ because the other variable is fixed:
+\begin{equation}
+  \label{eq:9}
+  \begin{aligned}
+  \Diff{}{t}\Fk{\R} &= \diff{\Fk{\R}}{\Fr{\xi}}\cdot 0 + \diff{\Fk{\R}}{\Fr{\eta}} \cdot 1,\\
+    &=\diff{\Fk{\R}}{\Fr{\eta}}.
+  \end{aligned}
+\end{equation}
 \subsection{Example: evaluating integrals over sides of $Q_{1}$ quad elements}
 \label{sec-3-1}
 
-In this example I use the first ("left") side, but computations for
+In this example I use the first (``left'') side, but computations for
 all sides are similar.
 
-Let $(\xi_{i}, \eta_{i}), i = 1,\dots,4$ be coordinates of the nodes
-of the reference element $E_{*}$ and $(x_{i}, y_{i})$ be coordinates
-of the nodes of a physical element $E$.
+Let $(\xi_{*,i}, \eta_{*,i}), i = 1,\dots,4$ be coordinates of the nodes
+of the reference element $E_{*}$ and $(x_{k,i}, y_{k,i})$ be coordinates
+of the nodes of a physical element $E_{k}$.
 
-Let $F(x,y)$ be a function defined on the FEM mesh and on $C_{E,1}$ in
+Let $F(x,y)$ be a function defined on the FEM mesh and on $\Fk{E}$ in
 particular. Assume that we know its nodal values
 \begin{equation}
-\label{eq:7}
-F_{i} = F(x_{i}, y_{i}).
+\label{eq:10}
+F_{i} = F(x_{k,i}, y_{k,i}).
 \end{equation}
 
 Our goal is to approximate the integral
 \begin{equation}
-\label{eq:8}
-I = \int_{C_{E,1}} F(x,y)\, ds
+\label{eq:11}
+\Fk{I} = \int_{\Fk{E}} F(x,y)\, ds
 \end{equation}
 
-In this case the map $\rRef$ is defined by \eqref{eq:4} and
+In this case the map $\Fk{\R}$ is defined by \eqref{eq:6} and
 \begin{equation}
-\label{eq:9}
+\label{eq:12}
 \begin{aligned}
-x(\xi,\eta) &= \sum_{i=1}^{4} x_{i}\, \chi_{i}(\xi, \eta),\\
-y(\xi,\eta) &= \sum_{i=1}^{4} y_{i}\, \chi_{i}(\xi, \eta),\\
+x_{k}(\xi,\eta) &= \sum_{i=1}^{4} x_{k,i}\, \chi_{i}(\xi, \eta),\\
+y_{k}(\xi,\eta) &= \sum_{i=1}^{4} y_{k,i}\, \chi_{i}(\xi, \eta),\\
 \end{aligned}
 \end{equation}
 where
 \begin{equation}
-\label{eq:10}
-\chi_{i}(\xi,\eta) = \frac14 (1 + \xi\xi_{i})(1 + \eta\eta_{i})
+\label{eq:13}
+\chi_{i}(\xi,\eta) = \frac14 (1 + \xi\,\xi_{*,i})(1 + \eta\,\eta_{*,i})
 \end{equation}
 are $Q_{1}$ reference element basis functions.
 
-Now we can rewrite $I$
+Now we can rewrite $\Fk{I}$
 \begin{equation}
-\label{eq:11}
-I = \int_{-1}^{1} F(x(-1, t), y(-1, t))\, \left|\frac{d}{dt}\R_{1}(t) \right|\, dt.
+\label{eq:14}
+\Fk{I} = \int_{-1}^{1} F(\Fk{\R}(t))\, \left|\frac{d}{dt}\Fk{\R}(t) \right|\, dt.
 \end{equation}
 
 Here
 \begin{align}
-\label{eq:12}
-\R_{1}(t) &= \left( x(-1,t),\, y(-1,t) \right),\\
-\frac{d}{dt} \R_{1}(t) &= \left( \sum_{i=1}^{4} x_{i}\, \frac{d}{dt}\chi_{i}(-1, t),\,
-                                 \sum_{i=1}^{4} y_{i}\, \frac{d}{dt}\chi_{i}(-1, t)  \right).
+\label{eq:15}
+\Fk{\R}(t) &= \left( x_{k}(\T),\, y_{k}(\T) \right),\\
+\frac{d}{dt} \Fk{\R}(t) &= \left( \sum_{i=1}^{4} x_{k,i}\, \frac{d}{dt}\chi_{i}(\T),\,
+                                  \sum_{i=1}^{4} y_{k,i}\, \frac{d}{dt}\chi_{i}(\T)  \right).
 \end{align}
 
-The integral in \eqref{eq:11} is a \emph{regular} definite integral over
+The integral in \eqref{eq:14} is a \emph{regular} definite integral over
 the interval $[-1, 1]$ and can be approximated using a quadrature.
 
 \begin{equation}
-\label{eq:13}
-I \approx \sum_{q=1}^{N_{q}} w_{q}\, F(x(-1, t_{q}), y(-1, t_{q}))\, \left|\frac{d}{dt}\R(t_{q}) \right|.
+\label{eq:16}
+\Fk{I} \approx \sum_{q=1}^{N_{q}} w_{q}\, F(\Tq), y(\Tq))\, \left|\frac{d}{dt}\Fk{\R}(t_{q}) \right|.
 \end{equation}
 
-Now we just need to approximate $F(x(-1, t_{q}), y(-1, t_{q}))$ by
-a bilinear function built on \eqref{eq:10}:
+Now we just need to approximate $F(\Fk{\R}(t_{q}))$ by
+a bilinear function built using $Q_{1}$ basis functions \eqref{eq:13}:
 \begin{equation}
-\label{eq:14}
-F(x(-1, t), y(-1, t)) \approx \sum_{j=1}^{4} F_{j}\, \chi_{j}(-1, t)
+\label{eq:17}
+F(\Fk{\R}(t)) \approx \sum_{j=1}^{4} F_{j}\, \chi_{j}(\T)
 \end{equation}
 so that
 \begin{equation}
-\label{eq:15}
-I \approx \sum_{q=1}^{N_{q}} w_{q}\,
-\left( \sum_{j=1}^{4} F_{j}\, \chi_{j}(-1, t_{q}) \right) \,
-\left| \frac{d}{dt}\R(t_{q}) \right|.
+\label{eq:18}
+\Fk{I} \approx \sum_{q=1}^{N_{q}} w_{q}\,
+\left( \sum_{j=1}^{4} F_{j}\, \chi_{j}(\Tq) \right) \, \left| \frac{d}{dt}\Fk{\R}(t_{q}) \right|.
 \end{equation}
 
 In the equal spacing case ($x_{4} = x_{1}$, $x_{2} = x_{3} = x_{1} +
 \dx$, $y_{2} = y_{1}$, $y_{3} = y_{4} = y_{1} + \dy$ everything is much simpler:
 \begin{align*}
-\left| \frac{d}{dt}\R_{1}\right|  & = \frac{\dy}{2}, \\
-\left| \frac{d}{dt}\R_{2}\right|  & = \frac{\dy}{2}, \\
-\left| \frac{d}{dt}\R_{3}\right|  & = \frac{\dx}{2}, \\
-\left| \frac{d}{dt}\R_{4}\right|  & = \frac{\dx}{2}. \\
+\left| \frac{d}{dt}\R_{k}^{1}\right|  & = \frac{\dy}{2}, \\
+\left| \frac{d}{dt}\R_{k}^{2}\right|  & = \frac{\dy}{2}, \\
+\left| \frac{d}{dt}\R_{k}^{3}\right|  & = \frac{\dx}{2}, \\
+\left| \frac{d}{dt}\R_{k}^{4}\right|  & = \frac{\dx}{2}. \\
 \end{align*}
 
 \section{Boundaries of hexahedral elements}
@@ -215,31 +262,31 @@ A 3D FEM construction includes the map from the reference element
 $E_{*} = [-1, 1] \times [-1,1] \times [-1,1]$ to a physical element:
 
 \begin{equation}
-\label{eq:16}
-\rRef(\xi,\eta,\zeta) = \left( x(\xi,\eta,\zeta), y(\xi,\eta,\zeta), z((\xi,\eta,\zeta) \right)
+\label{eq:19}
+\R_{k}(\xi,\eta,\zeta) = \left( x_{k}(\xi,\eta,\zeta), y_{k}(\xi,\eta,\zeta), z_{k}((\xi,\eta,\zeta) \right)
 \end{equation}
 
-Note that $\rRef$ maps a face of the reference element to the
+Note that $\R_{k}$ maps a face of the reference element to the
 corresponding face of a physical element. We number the faces of the
 reference element as follows.
 
 \begin{equation}
-\label{eq:17}
+\label{eq:20}
 \begin{aligned}
-S_{*,1} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \xi = -1 \right \},\\
-S_{*,2} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \xi = 1  \right \},\\
-S_{*,3} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \eta = -1 \right \},\\
-S_{*,4} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \eta = 1  \right \},\\
-S_{*,5} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \zeta = -1 \right \},\\
-S_{*,6} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \zeta = 1  \right \}.
+E_{*,1} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \xi = -1 \right \},\\
+E_{*,2} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \xi = 1  \right \},\\
+E_{*,3} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \eta = -1 \right \},\\
+E_{*,4} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \eta = 1  \right \},\\
+E_{*,5} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \zeta = -1 \right \},\\
+E_{*,6} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \zeta = 1  \right \}.
 \end{aligned}
 \end{equation}
 
-Then faces of a physical element are $S_{E,i} = \rRef(S_{*,i})$.
+Then faces of a physical element are $S_{E,i} = \R_{k}(E_{*,i})$.
 The face $S_{E,1}$ is parameterized by
 \begin{equation*}
-\label{eq:18}
-\R_{E,1}(s, t) = \rRef(-1,s,t),
+\label{eq:21}
+\R_{E,1}(s, t) = \R_{k}(-1,s,t),
 \end{equation*}
 and so on.
 
@@ -248,7 +295,7 @@ and so on.
 
 \newcommand{\face}{S_{E,5}}
 
-In this example I use the fifth, or "bottom" face, but all
+In this example I use the fifth, or ``bottom'' face, but all
 computations are very similar in the five other cases.
 
 Let $(\xi_{i}, \eta_{i}, \zeta_{i})$, $i = 1,\dots,8$ be coordinates
@@ -263,45 +310,45 @@ F_{i} = F(x_{i}, y_{i}, z_{i}).
 
 Our goal is to approximate the integral
 \begin{equation}
-\label{eq:19}
+\label{eq:22}
 I = \int_{\face} F(x,y,z)\, dS.
 \end{equation}
 
-In this case the map $\rRef$ is defined by \eqref{eq:16} and
+In this case the map $\R_{k}$ is defined by \eqref{eq:19} and
 \begin{equation}
-\label{eq:20}
+\label{eq:23}
 \begin{aligned}
-x(\xi,\eta,\zeta) &= \sum_{i=1}^{8} x_{i}\, \chi_{i}(\xi, \eta, \zeta),\\
-y(\xi,\eta,\zeta) &= \sum_{i=1}^{8} y_{i}\, \chi_{i}(\xi, \eta, \zeta),\\
-z(\xi,\eta,\zeta) &= \sum_{i=1}^{8} z_{i}\, \chi_{i}(\xi, \eta, \zeta),
+x_{k}(\xi,\eta,\zeta) &= \sum_{i=1}^{8} x_{k,i}\, \chi_{i}(\xi, \eta, \zeta),\\
+y_{k}(\xi,\eta,\zeta) &= \sum_{i=1}^{8} y_{k,i}\, \chi_{i}(\xi, \eta, \zeta),\\
+z_{k}(\xi,\eta,\zeta) &= \sum_{i=1}^{8} z_{k,i}\, \chi_{i}(\xi, \eta, \zeta),
 \end{aligned}
 \end{equation}
 where
 \begin{equation}
-\label{eq:21}
+\label{eq:24}
 \chi_{i}(\xi,\eta,\zeta) = \frac18 (1 + \xi\xi_{i})(1 + \eta\eta_{i})(1 + \zeta\zeta_{i})
 \end{equation}
 are $Q_{1}$ reference element basis functions.
 
-We can now rewrite $I$ using \eqref{eq:16}, \eqref{eq:20}, and the definition of the surface integral:
+We can now rewrite $I$ using \eqref{eq:19}, \eqref{eq:23}, and the definition of the surface integral:
 \begin{equation}
-\label{eq:22}
+\label{eq:25}
 I = \int_{E_{*}} F(x(s,t,-1), y(s,t,-1), z(s,t,-1))\, | \N(s,t) |\,dsdt,
 \end{equation}
 where $\N(s,t) = \rs(s,t) \times \rt(s,t)$ and
 \begin{equation}
-\label{eq:23}
+\label{eq:26}
 \begin{aligned}
 \rs(s,t) &= \left(\diff{x(s,t,-1)}{s}, \diff{y(s,t,-1)}{s}, \diff{z(s,t,-1)}{s}\right),\\
 \rt(s,t) &= \left(\diff{x(s,t,-1)}{t}, \diff{y(s,t,-1)}{t}, \diff{z(s,t,-1)}{t}\right),
 \end{aligned}
 \end{equation}
-since the face $\face$ is parameterized by $\R_{E,5}(s, t) = \rRef(s, t, -1)$.
+since the face $E_{k,5}$ is parameterized by $\R_{k,5}(s, t) = \R_{k}(s, t, -1)$.
 
-The integral $I$ written in the form \eqref{eq:22} can be approximated
+The integral $I$ written in the form \eqref{eq:25} can be approximated
 using a quadrature on the reference element, i.e.
 \begin{equation}
-\label{eq:24}
+\label{eq:27}
 I \approx \sum_{q=1}^{N_{q}} w_{q}\cdot F(x(s_{q},t_{q},-1), y(s_{q},t_{q},-1), z(s_{q},t_{q},-1)) | \N(s_{q},t_{q}) |,
 \end{equation}
 where $w_{q}$ are quadrature weights and $s_{q}, t_{q}$ are
@@ -311,22 +358,22 @@ To compute this quadrature we need
 $F(x(s_{q},t_{q},-1), y(s_{q},t_{q},-1), z(s_{q},t_{q},-1))$, but we
 assume that only nodal values of $F$ are available.
 
-We use \eqref{eq:21} as a basis to write a trilinear approximation of $F$ on $\face$:
+We use \eqref{eq:24} as a basis to write a trilinear approximation of $F$ on $\face$:
 \begin{equation}
-\label{eq:25}
+\label{eq:28}
 F(s,t) \approx \sum_{k=1}^{8} F_{k}\,\chi_{k}(s, t, -1),
 \end{equation}
 then
 \begin{equation}
-\label{eq:26}
+\label{eq:29}
 I \approx \sum_{q=1}^{N_{q}} w_{q}\left( \sum_{k=1}^{8} F_{k}\,\chi_{k}(s_{q}, t_{q}, -1) \right) | \N(s_{q},t_{q}) |,
 \end{equation}
 
 Finally, to evaluate $|\N(s_{q}, t_{q})| = | \rs(s_{q}, t_{q}) \times
-\rt(s_{q}, t_{q}) |$ we use \eqref{eq:3} and \eqref{eq:20}.
+\rt(s_{q}, t_{q}) |$ we use \eqref{eq:3} and \eqref{eq:23}.
 The vector $\rs(s_{q}, t_{q})$ is defined by
 \begin{equation}
-\label{eq:27}
+\label{eq:30}
 \rs(s_{q},t_{q}) = \left(
   \sum_{j=1}^{8} x_{j} \left.\diff{\chi_{j}(s, t, -1)}{s}\right|_{(s_{q}, t_{q})},\,
   \sum_{j=1}^{8} y_{j} \left.\diff{\chi_{j}(s, t, -1)}{s}\right|_{(s_{q}, t_{q})},\,
@@ -334,7 +381,7 @@ The vector $\rs(s_{q}, t_{q})$ is defined by
 \end{equation}
 similarly for $\rt(s_{q}, t_{q})$.
 
-Overall, here are the steps needed to approximate \eqref{eq:19}.
+Overall, here are the steps needed to approximate \eqref{eq:22}.
 
 \begin{enumerate}
 \item Pre-compute $\chi_{j}(s_{q}, t_{q}, -1)$ for $\face$ and similarly
@@ -348,10 +395,10 @@ Then for each quadrature point we need to
 
 \begin{enumerate}
 \item use pre-computed values to approximate $\rs(s_{q},t_{q})$ and
-$\rt(s_{q},t_{q})$ (see \eqref{eq:27}),
+$\rt(s_{q},t_{q})$ (see \eqref{eq:30}),
 \item compute $|\N(s_{q}, t_{q})| = | \rs(s_{q}, t_{q}) \times \rt(s_{q}, t_{q}) |$,
-\item approximate $F(s_{q}, t_{q})$ using \eqref{eq:25},
-\item multiply to evaluate a term of \eqref{eq:26}.
+\item approximate $F(s_{q}, t_{q})$ using \eqref{eq:28},
+\item multiply to evaluate a term of \eqref{eq:29}.
 \end{enumerate}
 
 \subsubsection{Equal horizontal spacing}
@@ -361,7 +408,7 @@ The procedure described above can be simplified if we know that the
 FEM mesh uses regular spacing in the $x$ and $y$ directions, i.e.
 $x$ and $y$ coordinates of the nodes of a physical element are
 \begin{equation}
-  \label{eq:28}
+  \label{eq:31}
   \begin{array}{rcllllllll}
     x_{i} &=& \{ x_{1}, &x_{1} + \dx, &x_{1} + \dx, &x_{1}, &x_{1}, &x_{1} + \dx, &x_{1} + \dx, &x_{1} \},\\
     y_{i} &=& \{ y_{1}, &y_{1}, &y_{1} + \dy, &y_{1} + \dy, &y_{1}, &y_{1}, &y_{1} + \dy, &y_{1} + \dy \};\\
@@ -369,9 +416,9 @@ $x$ and $y$ coordinates of the nodes of a physical element are
 \end{equation}
 $z_{i}$ are may all be different.
 
-In this case \eqref{eq:27} simplifies to
+In this case \eqref{eq:30} simplifies to
 \begin{equation}
-  \label{eq:29}
+  \label{eq:32}
   \rs(s,t) = \left(
     \frac{\dx}{2},\,
     0,\,
@@ -379,7 +426,7 @@ In this case \eqref{eq:27} simplifies to
 \end{equation}
 and $\rt(s,t)$ is given by
 \begin{equation}
-  \label{eq:30}
+  \label{eq:33}
   \rt(s,t) = \left(
     0,\,
     \frac{\dy}{2},\,
@@ -389,7 +436,7 @@ and $\rt(s,t)$ is given by
 With these simplifications $\N(s,t)$ becomes
 
 \begin{equation}
-  \label{eq:31}
+  \label{eq:34}
   \N(s,t) = \left(
     -\frac{\dy}{2}\diff{z(s,t,-1)}{s},
     -\frac{\dx}{2}\diff{z(s,t,-1)}{t},
@@ -405,7 +452,7 @@ spacing in $x$ and $y$ directions --- as expected.
 The only thing that changes depending on the face we're integrating
 over is the expression for $|\N|$. Below are formulas for all six
 faces (assuming equal horizontal spacing and using the numbering
-defined by \eqref{eq:17}).
+defined by \eqref{eq:20}).
 
 \newcommand{\ddt}{\frac{d}{d\,t}}
 \newcommand{\dds}{\frac{d}{d\,s}}
