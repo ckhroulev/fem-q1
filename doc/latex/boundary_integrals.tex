@@ -32,8 +32,8 @@
 \newcommand{\Real}{\mathbb{R}}
 \newcommand{\diff}[2]{\frac{\partial #1}{\partial #2}}
 \newcommand{\Diff}[2]{\frac{d #1}{d #2}}
-\newcommand{\rs}{\R_{s}}
-\newcommand{\rt}{\R_{t}}
+\newcommand{\rs}{\diff{\Fk{\R}}{s}}
+\newcommand{\rt}{\diff{\Fk{\R}}{t}}
 \newcommand{\R}{\mathbf{r}}
 \newcommand{\N}{\mathbf{n}}
 
@@ -89,10 +89,10 @@ t)$, $y(s, t)$, and $z(s, t)$ are continuously differentiable
 functions defined on $\Omega$. Then $S = \R(\Omega) \subset
 \Real^{3}$ is a smooth surface parameterized by $\R$.
 
-Vectors $\rs$ and $\rt$ are tangential vectors to the surface $S$
+Vectors $\R_{s}$ and $\R_{t}$ are tangential vectors to the surface $S$
 given by the parameterization $\R(s,t)$.
 
-If $\rs$ and $\rt$ are not parallel, then $\N = \rs \times \rt$ is
+If $\R_{s}$ and $\R_{t}$ are not parallel, then $\N = \R_{s} \times \R_{t}$ is
 a normal vector, $| \N | > 0$, and we can define
 the integral
 \begin{equation}
@@ -103,8 +103,8 @@ the integral
 Here
 \begin{equation}
 \label{eq:3}
-\rs = \left(\diff{x(s,t)}{s}, \diff{y(s,t)}{s}, \diff{z(s,t)}{s}\right) \quad \text{and} \quad
-\rt = \left(\diff{x(s,t)}{t}, \diff{y(s,t)}{t}, \diff{z(s,t)}{t}\right).
+\R_{s} = \left(\diff{x(s,t)}{s}, \diff{y(s,t)}{s}, \diff{z(s,t)}{s}\right) \quad \text{and} \quad
+\R_{t} = \left(\diff{x(s,t)}{t}, \diff{y(s,t)}{t}, \diff{z(s,t)}{t}\right).
 \end{equation}
 See \cite{Nikolsky1977} or any other Calculus textbook for details.
 
@@ -214,26 +214,26 @@ are $Q_{1}$ reference element basis functions.
 
 We combine (\ref{eq:5}), (\ref{eq:6}), and (\ref{eq:7}) to define $\Fk{\R}(t)$, the parameterization of the first side:
 \begin{equation}
-  \label{eq:36}
+  \label{eq:14}
   \Fk{\R}(t) = \left( x_{k}(\T),\, y_{k}(\T) \right).
 \end{equation}
 
 Now we can rewrite $\Fk{I}$
 \begin{equation}
-\label{eq:14}
+\label{eq:15}
 \Fk{I} = \int_{-1}^{1} F(\Fk{\R}(t))\, \left|\frac{d}{dt}\Fk{\R}(t) \right|\, dt.
 \end{equation}
 
 Using (\ref{eq:12}) we can re-write $\frac{d}{dt} \Fk{\R}(t)$:
 \begin{equation}
-\label{eq:15}
+\label{eq:16}
 \frac{d}{dt} \Fk{\R}(t) = \left( \sum_{i=1}^{4} x_{k,i}\, \frac{d}{dt}\chi_{i}(\T),\,
                                  \sum_{i=1}^{4} y_{k,i}\, \frac{d}{dt}\chi_{i}(\T)  \right).
 \end{equation}
 
 Differentiating $\chi_{i}(\T)$ gives
 \begin{equation}
-  \label{eq:37}
+  \label{eq:17}
   \begin{aligned}
       \frac{d}{dt}\chi_{i}(\T) &= \frac{d}{dt}\chi_{i}(\Fr{\xi}(t), \Fr{\eta}(t))\\
       &=\diff{\chi_{i}(\Fr{\xi}(t), \Fr{\eta}(t))}{\Fr{\xi}}\,\diff{\Fr{\xi}(t)}{t} +
@@ -243,30 +243,30 @@ Differentiating $\chi_{i}(\T)$ gives
   \end{aligned}
 \end{equation}
 
-This simplifies (\ref{eq:15}) to
+This simplifies (\ref{eq:16}) to
 \begin{equation}
-  \label{eq:38}
+  \label{eq:18}
 \frac{d}{dt} \Fk{\R}(t) = \left( \sum_{i=1}^{4} x_{k,i}\,\diff{\chi_{i}(\xi, \eta)}{\eta}(-1, t),\,
                                  \sum_{i=1}^{4} y_{k,i}\,\diff{\chi_{i}(\xi, \eta)}{\eta}(-1, t) \right).
 \end{equation}
 
-The integral in \eqref{eq:14} is a \emph{regular} definite integral over
+The integral in \eqref{eq:15} is a \emph{regular} definite integral over
 the interval $[-1, 1]$ and can be approximated using a quadrature.
 
 \begin{equation}
-\label{eq:16}
+\label{eq:19}
 \Fk{I} \approx \sum_{q=1}^{N_{q}} w_{q}\, F(\Tkq), y(\Tkq))\, \left|\frac{d}{dt}\Fk{\R}(t_{q}) \right|.
 \end{equation}
 
 Now we just need to approximate $F(\Fk{\R}(t_{q}))$ by
 a bilinear function built using $Q_{1}$ basis functions \eqref{eq:13}:
 \begin{equation}
-\label{eq:17}
+\label{eq:20}
 F(\Fk{\R}(t)) \approx \sum_{j=1}^{4} F_{k,j}\, \chi_{j}(\T)
 \end{equation}
 so that
 \begin{equation}
-\label{eq:18}
+\label{eq:21}
 \Fk{I} \approx \sum_{q=1}^{N_{q}} w_{q}\,
 \left( \sum_{j=1}^{4} F_{k,j}\, \chi_{j}(\Tq) \right) \, \left| \frac{d}{dt}\Fk{\R}(t_{q}) \right|.
 \end{equation}
@@ -283,12 +283,14 @@ $\left| \frac{d}{dt}\R_{k}^{j}\right|, j=1,\dots,4$ can be simplified to
 
 \section{Boundaries of hexahedral elements}
 \label{sec-4}
+\renewcommand{\Tq}{\Fr{\R}(s_{q}, t_{q})}
+\renewcommand{\Tkq}{\Fk{\R}(s_{q}, t_{q})}
 
 A 3D FEM construction includes the map from the reference element
 $E_{*} = [-1, 1] \times [-1,1] \times [-1,1]$ to a physical element:
 
 \begin{equation}
-\label{eq:19}
+\label{eq:22}
 \R_{k}(\xi,\eta,\zeta) = \left( x_{k}(\xi,\eta,\zeta), y_{k}(\xi,\eta,\zeta), z_{k}((\xi,\eta,\zeta) \right)
 \end{equation}
 
@@ -297,7 +299,7 @@ corresponding face of a physical element. We number the faces of the
 reference element as follows.
 
 \begin{equation}
-\label{eq:20}
+\label{eq:23}
 \begin{aligned}
 E_{*}^{1} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \xi = -1 \right \},\\
 E_{*}^{2} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \xi = 1  \right \},\\
@@ -309,10 +311,10 @@ E_{*}^{6} &=  E_{*} \cap \left \{ (\xi, \eta, \zeta)\, |\, \zeta = 1  \right \}.
 \end{equation}
 
 \renewcommand{\F}[2]{#1_{#2}^{5}}
-We can use (\ref{eq:20}) to define parameterizations of faces of the
+We can use (\ref{eq:23}) to define parameterizations of faces of the
 reference element. For example, the fifth face is parameterized by
 \begin{equation}
-  \label{eq:35}
+  \label{eq:24}
   \begin{aligned}
     \Fr{\R}(s,t) &= \left( \Fr{\xi}(s,t), \Fr{\eta}(s,t), \Fr{\zeta}(s,t) \right),\\
     \Fr{\xi}(s,t) &= s,\\
@@ -324,10 +326,14 @@ reference element. For example, the fifth face is parameterized by
 The faces of a physical element are images of reference element faces
 under $\R_{k}$: $E_{k}^{i} = \R_{k}(E_{*}^{i})$. The face $\Fk{E}$ is
 parameterized by
-\begin{equation*}
-\label{eq:21}
-\Fk{\R}(s, t) = \R_{k}(\Fr{\R}(s,t)).
-\end{equation*}
+\begin{equation}
+\label{eq:25}
+\begin{aligned}
+  \Fk{\R}(s, t) &= \R_{k}(\Fr{\R}(s,t)),\\
+  (s,t) &\in D,\\
+  D &= [-1, 1] \times [-1, 1].
+\end{aligned}
+\end{equation}
 and so on.
 
 \subsection{Example: evaluating an integral over a face of a $Q_{1}$ element.}
@@ -350,13 +356,13 @@ F_{k,i} = F(x_{k,i}, y_{k,i}, z_{k,i}).
 
 Our goal is to approximate the integral
 \begin{equation}
-\label{eq:22}
-I = \int_{\face} F(x,y,z)\, dS.
+\label{eq:26}
+\Fk{I} = \int_{\face} F(x,y,z)\, dS.
 \end{equation}
 
-In this case the map $\R_{k}$ is defined by \eqref{eq:19} and
+In this case the map $\R_{k} = \left( x_{k}(\xi,\eta,\zeta), y_{k}(\xi,\eta,\zeta), z_{k}(\xi,\eta,\zeta) \right)$ (\ref{eq:22}) is defined by
 \begin{equation}
-\label{eq:23}
+\label{eq:27}
 \begin{aligned}
 x_{k}(\xi,\eta,\zeta) &= \sum_{i=1}^{8} x_{k,i}\, \chi_{i}(\xi, \eta, \zeta),\\
 y_{k}(\xi,\eta,\zeta) &= \sum_{i=1}^{8} y_{k,i}\, \chi_{i}(\xi, \eta, \zeta),\\
@@ -365,69 +371,81 @@ z_{k}(\xi,\eta,\zeta) &= \sum_{i=1}^{8} z_{k,i}\, \chi_{i}(\xi, \eta, \zeta),
 \end{equation}
 where
 \begin{equation}
-\label{eq:24}
+\label{eq:28}
 \chi_{i}(\xi,\eta,\zeta) = \frac18 (1 + \xi\xi_{i})(1 + \eta\eta_{i})(1 + \zeta\zeta_{i})
 \end{equation}
 are $Q_{1}$ reference element basis functions.
 
-We can now rewrite $I$ using \eqref{eq:19}, \eqref{eq:23}, and the definition of the surface integral:
+We can now rewrite $\Fk{I}$ using \eqref{eq:22}, (\ref{eq:25}) \eqref{eq:27}, and the definition of the surface integral:
 \begin{equation}
-\label{eq:25}
-I = \int_{E_{*}} F(x(s,t,-1), y(s,t,-1), z(s,t,-1))\, | \N(s,t) |\,dsdt,
+\label{eq:29}
+\Fk{I} = \int_{D} F(\Fk{\R}(s,t))\, | \N(s,t) |\,dsdt,
 \end{equation}
 where $\N(s,t) = \rs(s,t) \times \rt(s,t)$ and
 \begin{equation}
-\label{eq:26}
+\label{eq:30}
 \begin{aligned}
-\rs(s,t) &= \left(\diff{x(s,t,-1)}{s}, \diff{y(s,t,-1)}{s}, \diff{z(s,t,-1)}{s}\right),\\
-\rt(s,t) &= \left(\diff{x(s,t,-1)}{t}, \diff{y(s,t,-1)}{t}, \diff{z(s,t,-1)}{t}\right),
+\rs(s,t) &= \left(\diff{x_{k}(\Fr{\R}(s,t))}{s}, \diff{y_{k}(\Fr{\R}(s,t))}{s}, \diff{z_{k}(\Fr{\R}(s,t))}{s}\right),\\
+\rt(s,t) &= \left(\diff{x_{k}(\Fr{\R}(s,t))}{t}, \diff{y_{k}(\Fr{\R}(s,t))}{t}, \diff{z_{k}(\Fr{\R}(s,t))}{t}\right).
 \end{aligned}
 \end{equation}
-since the face $E_{k,5}$ is parameterized by $\R_{k,5}(s, t) = \R_{k}(s, t, -1)$.
 
-The integral $I$ written in the form \eqref{eq:25} can be approximated
-using a quadrature on the reference element, i.e.
+Consider $\diff{}{s}x_{k}(\Fr{\R}(s,t))$ on $D$:
+\newcommand{\xFr}{x_k(\Fr{\xi}, \Fr{\eta}, \Fr{\zeta})}
 \begin{equation}
-\label{eq:27}
-I \approx \sum_{q=1}^{N_{q}} w_{q}\cdot F(x(s_{q},t_{q},-1), y(s_{q},t_{q},-1), z(s_{q},t_{q},-1)) | \N(s_{q},t_{q}) |,
+  \label{eq:31}
+  \begin{aligned}
+    \diff{}{s}x_{k}(\Fr{\R}(s,t)) &= \diff{}{s}\xFr\\
+    &=\diff{\xFr}{\Fr{\xi}}\,\diff{\Fr{\xi}}{s}
+    +\diff{\xFr}{\Fr{\eta}}\,\diff{\Fr{\eta}}{s}
+    +\diff{\xFr}{\Fr{\zeta}}\,\diff{\Fr{\zeta}}{s}\\
+    &=\diff{x_{k}}{\xi}(\Fr{\R}(s,t)) \times 1 + 0 + 0
+  \end{aligned}
+\end{equation}
+
+The integral $\Fk{I}$ written in the form \eqref{eq:29} can be approximated
+using a quadrature on $D$, i.e.
+\begin{equation}
+\label{eq:32}
+\Fk{I} \approx \sum_{q=1}^{N_{q}} w_{q}\cdot F(\Tkq) | \N(s_{q},t_{q}) |,
 \end{equation}
 where $w_{q}$ are quadrature weights and $s_{q}, t_{q}$ are
 coordinates of quadrature points.
 
-To compute this quadrature we need
-$F(x(s_{q},t_{q},-1), y(s_{q},t_{q},-1), z(s_{q},t_{q},-1))$, but we
+To compute this quadrature we need $F(\Tkq)$, but we
 assume that only nodal values of $F$ are available.
 
-We use \eqref{eq:24} as a basis to write a trilinear approximation of $F$ on $\face$:
+We use \eqref{eq:28} as a basis to write a trilinear approximation of $F$ on $\face$:
 \begin{equation}
-\label{eq:28}
-F(s,t) \approx \sum_{k=1}^{8} F_{k}\,\chi_{k}(s, t, -1),
+\label{eq:33}
+F(s,t) \approx \sum_{k=1}^{8} F_{k}\,\chi_{k}(\Fr{\R}(s,t)),
 \end{equation}
 then
 \begin{equation}
-\label{eq:29}
-I \approx \sum_{q=1}^{N_{q}} w_{q}\left( \sum_{k=1}^{8} F_{k}\,\chi_{k}(s_{q}, t_{q}, -1) \right) | \N(s_{q},t_{q}) |,
+\label{eq:34}
+\Fk{I} \approx \sum_{q=1}^{N_{q}} w_{q}\left( \sum_{k=1}^{8} F_{k}\,\chi_{k}(\Fk{\R}) \right) | \N(s_{q},t_{q}) |,
 \end{equation}
 
-Finally, to evaluate $|\N(s_{q}, t_{q})| = | \rs(s_{q}, t_{q}) \times
-\rt(s_{q}, t_{q}) |$ we use \eqref{eq:3} and \eqref{eq:23}.
-The vector $\rs(s_{q}, t_{q})$ is defined by
+Finally, to evaluate $|\N(s_{q}, t_{q})| = \left| \rs(s_{q}, t_{q}) \times
+\rt(s_{q}, t_{q}) \right|$ we use \eqref{eq:3} and \eqref{eq:27}.
+
+From (\ref{eq:27}) and (\ref{eq:31}) we have
 \begin{equation}
-\label{eq:30}
-\rs(s_{q},t_{q}) = \left(
-  \sum_{j=1}^{8} x_{j} \left.\diff{\chi_{j}(s, t, -1)}{s}\right|_{(s_{q}, t_{q})},\,
-  \sum_{j=1}^{8} y_{j} \left.\diff{\chi_{j}(s, t, -1)}{s}\right|_{(s_{q}, t_{q})},\,
-  \sum_{j=1}^{8} z_{j} \left.\diff{\chi_{j}(s, t, -1)}{s}\right|_{(s_{q}, t_{q})} \right),
+  \label{eq:35}
+  \diff{}{s}x_{k}(\Fr{\R}(s,t)) = \sum_{j=1}^{8}x_{k,j}\diff{\chi_{j}}{\xi}(\Fr{\R}(s,t))
 \end{equation}
-similarly for $\rt(s_{q}, t_{q})$.
+and similarly for $y_{k}$, $z_{k}$, and $t$-derivatives.
 
-Overall, here are the steps needed to approximate \eqref{eq:22}.
+\subsubsection{Summary}
+\label{sec:summary}
+
+Overall, here are the steps needed to approximate \eqref{eq:26}.
 
 \begin{enumerate}
-\item Pre-compute $\chi_{j}(s_{q}, t_{q}, -1)$ for $\face$ and similarly
+\item Pre-compute $\chi_{j}(\Tq)$ for $\face$ and similarly
 for the remaining five faces.
-\item Pre-compute $\diff{\chi_{i}(s, t, -1)}{s}$ and
-$\diff{\chi_{i}(s, t, -1)}{t}$ and $(s_{q}, t_{q})$ for $\face$ and similarly for
+\item Pre-compute $\diff{\chi_{i}(\Fr{\R})}{s}$ and
+$\diff{\chi_{i}(\Fr{\R})}{t}$ at $(s_{q}, t_{q})$ for $\face$ and similarly for
 other faces.
 \end{enumerate}
 
@@ -435,10 +453,10 @@ Then for each quadrature point we need to
 
 \begin{enumerate}
 \item use pre-computed values to approximate $\rs(s_{q},t_{q})$ and
-$\rt(s_{q},t_{q})$ (see \eqref{eq:30}),
-\item compute $|\N(s_{q}, t_{q})| = | \rs(s_{q}, t_{q}) \times \rt(s_{q}, t_{q}) |$,
-\item approximate $F(s_{q}, t_{q})$ using \eqref{eq:28},
-\item multiply to evaluate a term of \eqref{eq:29}.
+$\rt(s_{q},t_{q})$ (see \eqref{eq:35}),
+\item compute $|\N(s_{q}, t_{q})| = \left| \rs(s_{q}, t_{q}) \times \rt(s_{q}, t_{q}) \right|$,
+\item approximate $F(s_{q}, t_{q})$ using \eqref{eq:33},
+\item multiply to evaluate a term of \eqref{eq:34}.
 \end{enumerate}
 
 \subsubsection{Equal horizontal spacing}
@@ -448,7 +466,7 @@ The procedure described above can be simplified if we know that the
 FEM mesh uses regular spacing in the $x$ and $y$ directions, i.e.
 $x$ and $y$ coordinates of the nodes of a physical element are
 \begin{equation}
-  \label{eq:31}
+  \label{eq:36}
   \begin{array}{rcllllllll}
     x_{i} &=& \{ x_{1}, &x_{1} + \dx, &x_{1} + \dx, &x_{1}, &x_{1}, &x_{1} + \dx, &x_{1} + \dx, &x_{1} \},\\
     y_{i} &=& \{ y_{1}, &y_{1}, &y_{1} + \dy, &y_{1} + \dy, &y_{1}, &y_{1}, &y_{1} + \dy, &y_{1} + \dy \};\\
@@ -457,26 +475,22 @@ $x$ and $y$ coordinates of the nodes of a physical element are
 $z_{i}$ are may all be different.
 
 In this case \eqref{eq:30} simplifies to
-\begin{equation}
-  \label{eq:32}
-  \rs(s,t) = \left(
-    \frac{\dx}{2},\,
-    0,\,
-    \sum_{i=1}^{8} z_{i} \diff{\chi_{i}(s, t, -1)}{s} \right),
-\end{equation}
-and $\rt(s,t)$ is given by
-\begin{equation}
-  \label{eq:33}
-  \rt(s,t) = \left(
-    0,\,
-    \frac{\dy}{2},\,
-    \sum_{i=1}^{8} z_{i} \diff{\chi_{i}(s, t, -1)}{t} \right).
-\end{equation}
+\begin{align}
+  \label{eq:37}
+  \rs(s,t) &= \left(
+             \frac{\dx}{2},\,
+             0,\,
+             \sum_{i=1}^{8} z_{i} \diff{\chi_{i}(s, t, -1)}{s} \right),\\
+  \rt(s,t) &= \left(
+             0,\,
+             \frac{\dy}{2},\,
+             \sum_{i=1}^{8} z_{i} \diff{\chi_{i}(s, t, -1)}{t} \right).
+\end{align}
 
 With these simplifications $\N(s,t)$ becomes
 
 \begin{equation}
-  \label{eq:34}
+  \label{eq:38}
   \N(s,t) = \left(
     -\frac{\dy}{2}\diff{z(s,t,-1)}{s},
     -\frac{\dx}{2}\diff{z(s,t,-1)}{t},
@@ -492,19 +506,17 @@ spacing in $x$ and $y$ directions --- as expected.
 The only thing that changes depending on the face we're integrating
 over is the expression for $|\N|$. Below are formulas for all six
 faces (assuming equal horizontal spacing and using the numbering
-defined by \eqref{eq:20}).
+defined by \eqref{eq:23}).
 
 \newcommand{\ddt}{\frac{d}{d\,t}}
 \newcommand{\dds}{\frac{d}{d\,s}}
 \begin{align*}
-  \begin{array}{rcccl}
-    \N_{1} = \Big( & \frac{1}{2}\dy\ddt\,z(-1 , s , t),& 0 ,& 0 & \Big) , \\
-    \N_{2} = \Big( & \frac{1}{2}\dy\ddt\,z(1 , s , t),& 0 ,& 0 & \Big) , \\
-    \N_{3} = \Big( & 0 ,& -\frac{1}{2}\dx\,\ddt\,z(s , -1 , t),& 0 & \Big) , \\
-    \N_{4} = \Big( & 0 ,& -\frac{1}{2}\dx\,\ddt\,z(s , 1 , t),& 0 & \Big) , \\
-    \N_{5} = \Big( & -\frac{1}{2}\dy\,\dds\,z(s , t , -1) ,& -\frac{1}{2}\dx\,\ddt\,z(s , t , -1) ,& \frac{1}{4}\dx\,\dy & \Big) , \\
-    \N_{6} = \Big( & -\frac{1}{2}\dy\,\dds\,z(s , t , 1) ,& -\frac{1}{2}\dx\,\ddt\,z(s , t , 1) ,& \frac{1}{4}\dx\,\dy & \Big) . \\
-  \end{array}
+  \N_{1} &= \Big(\frac{1}{2}\dy\ddt\, z(-1, s, t), 0, 0  \Big), \\
+  \N_{2} &= \Big(\frac{1}{2}\dy\ddt\, z(1, s, t), 0, 0  \Big), \\
+  \N_{3} &= \Big(0, -\frac{1}{2}\dx\, \ddt\, z(s, -1, t), 0  \Big), \\
+  \N_{4} &= \Big(0, -\frac{1}{2}\dx\, \ddt\, z(s, 1, t), 0  \Big), \\
+  \N_{5} &= \Big(-\frac{1}{2}\dy\, \dds\, z(s, t, -1), -\frac{1}{2}\dx\, \ddt\, z(s, t, -1), \frac{1}{4}\dx\, \dy  \Big), \\
+  \N_{6} &= \Big(-\frac{1}{2}\dy\, \dds\, z(s, t, 1), -\frac{1}{2}\dx\, \ddt\, z(s, t, 1), \frac{1}{4}\dx\, \dy  \Big) . \\
 \end{align*}
 
 \begin{align*}
