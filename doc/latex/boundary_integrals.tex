@@ -197,10 +197,11 @@ Our goal is to approximate the integral
 \Fk{I} = \int_{\Fk{E}} F(x,y)\, ds
 \end{equation}
 
-In this case the map $\R_{k}$ is defined by \eqref{eq:6} and
+In this case the map $\R_{k}$ is defined by 
 \begin{equation}
 \label{eq:12}
 \begin{aligned}
+\R_{k}(\xi,\eta) &= \left( x_{k}(\xi,\eta), y_{k}(\xi,\eta) \right),\\
 x_{k}(\xi,\eta) &= \sum_{i=1}^{4} x_{k,i}\, \chi_{i}(\xi, \eta),\\
 y_{k}(\xi,\eta) &= \sum_{i=1}^{4} y_{k,i}\, \chi_{i}(\xi, \eta),\\
 \end{aligned}
@@ -379,7 +380,7 @@ are $Q_{1}$ reference element basis functions.
 We can now rewrite $\Fk{I}$ using \eqref{eq:22}, (\ref{eq:25}) \eqref{eq:27}, and the definition of the surface integral:
 \begin{equation}
 \label{eq:29}
-\Fk{I} = \int_{D} F(\Fk{\R}(s,t))\, | \N(s,t) |\,dsdt,
+\Fk{I} = \int_{D} F(\Fk{\R}(s,t))\, | \N(s,t) |\,ds\,dt,
 \end{equation}
 where $\N(s,t) = \rs(s,t) \times \rt(s,t)$ and
 \begin{equation}
@@ -423,7 +424,7 @@ F(s,t) \approx \sum_{k=1}^{8} F_{k}\,\chi_{k}(\Fr{\R}(s,t)),
 then
 \begin{equation}
 \label{eq:34}
-\Fk{I} \approx \sum_{q=1}^{N_{q}} w_{q}\left( \sum_{k=1}^{8} F_{k}\,\chi_{k}(\Fk{\R}) \right) | \N(s_{q},t_{q}) |,
+\Fk{I} \approx \sum_{q=1}^{N_{q}} w_{q}\left( \sum_{k=1}^{8} F_{k}\,\chi_{k}(\Fk{\R}(s_q, t_q)) \right) | \N(s_{q},t_{q}) |,
 \end{equation}
 
 Finally, to evaluate $|\N(s_{q}, t_{q})| = \left| \rs(s_{q}, t_{q}) \times
