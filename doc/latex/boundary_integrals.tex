@@ -54,7 +54,7 @@ Karniadakis and Sherwin mention this in section 4.1.4 (page 160) of
 \subsection{Notation}
 \label{sec:notation}
 
-In these notes the subscript $\cdot_{*}$ relate to the reference
+In these notes quantities with the subscript $\cdot_{*}$ relate to the reference
 element, $\cdot_{k}$ to the $k$-th physical element. Superscripts
 $\cdot^{j}$ relate to the $j$-th \emph{boundary} (side or face) of an element.
 
@@ -143,7 +143,7 @@ The first side $\Fr{E}$ is parameterized by
 (Definitions of $\Fr{\R}$ for $j = 2, 3, 4$ are very similar and
 are omitted.)
 
-Consider a physical element $E_{k}$ with nodal coordinates $(x_{k,i}, y_{k,i}), i = 1,\dots,4$.
+Consider a physical element $E_{k}$ with nodal coordinates $(x_{k,i}, y_{k,i}),\, i = 1,\dots,4$.
 A 2D FEM construction includes the map from the reference element
 $E_{*} = [-1, 1] \times [-1,1]$ to $E_{k}$:
 \begin{equation}
@@ -159,7 +159,7 @@ $\Fk{E}$:
   \label{eq:7}
   \Fk{\R}(t) = \R_{k}(\Fr{\xi}(t), \Fr{\eta}(t)),\\
 \end{equation}
-Note that (\ref{eq:7}) use a composition of functions, and we have to
+Note that (\ref{eq:7}) uses a composition of functions, and we have to
 use the \emph{full derivative} to compute $\frac{d}{dt}\Fk{\R}$:
 \begin{equation}
   \label{eq:8}
